@@ -1,0 +1,51 @@
+classDiagram
+    %% PawPal+ final class diagram
+    %% Reflects the completed build: recurrence, sorting, filtering,
+    %% and conflict detection.
+
+    class Task {
+        +str description
+        +str time
+        +str frequency
+        +bool completed
+        +date scheduled_date
+        +mark_done() None
+        +mark_undone() None
+        +next_occurrence() Task
+    }
+
+    class Pet {
+        +str name
+        +str species
+        +list~Task~ tasks
+        +add_task(task) None
+    }
+
+    class Owner {
+        +str name
+        +list~Pet~ pets
+        +add_pet(pet) None
+        +all_tasks() list~Task~
+    }
+
+    class Scheduler {
+        +Owner owner
+        +get_all_tasks() list~Task~
+        +pending_tasks() list~Task~
+        +completed_tasks() list~Task~
+        +daily_schedule() list~Task~
+        +sort_by_time() list~Task~
+        +tasks_by_frequency(frequency) list~Task~
+        +filter_tasks(completed, pet_name) list~Task~
+        +detect_conflicts() list~str~
+        +has_conflicts() bool
+        +mark_complete(task) Task
+        -_pet_owning(task) Pet
+        +progress_summary() str
+    }
+
+    Owner "1" --> "*" Pet : owns
+    Pet "1" --> "*" Task : has
+    Scheduler "1" --> "1" Owner : manages
+    Scheduler ..> Task : creates
+    Task ..> Task : next_occurrence

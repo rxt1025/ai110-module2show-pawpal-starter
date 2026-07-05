@@ -62,14 +62,65 @@ st.divider()
 
 # --- Today's Schedule ---------------------------------------------------------
 st.subheader("Today's Schedule")
-if st.button("Generate schedule"):
+if not owner.pets or not owner.all_tasks():
+    st.info("No tasks scheduled yet. Add some tasks above.")
+else:
     scheduler = Scheduler(owner)
-    schedule = scheduler.daily_schedule()
 
-    if schedule:
-        for task in schedule:
-            status = "✅" if task.completed else "⬜"
-            st.write(f"{status} **{task.time}** — {task.description} ({task.frequency})")
+    # Conflict warnings — st.warning shows any two tasks sharing a time slot.
+    conflicts = scheduler.detect_conflicts()
+    for warning in conflicts:
+        st.warning(warning)
+
+    # Filter controls wired to Scheduler.filter_tasks().
+    fcol1, fcol2 = st.columns(2)
+    with fcol1:
+        pet_filter = st.selectbox(
+            "Filter by pet", ["All pets"] + [pet.name for pet in owner.pets]
+        )
+    with fcol2:
+        status_filter = st.radio(
+            "Show", ["All", "Pending", "Completed"], horizontal=True
+        )
+
+    completed = {"Pending": False, "Completed": True}.get(status_filter)
+    pet_name = None if pet_filter == "All pets" else pet_filter
+
+    # Filter, then sort the result chronologically by time.
+    tasks = sorted(
+        scheduler.filter_tasks(completed=completed, pet_name=pet_name),
+        key=lambda task: task.time,
+    )
+
+    if tasks:
+        # Map each task back to its pet (by identity) for the Pet column.
+        pet_of = {id(t): pet.name for pet in owner.pets for t in pet.tasks}
+        st.table([
+            {
+                "Time": task.time,
+                "Pet": pet_of.get(id(task), "?"),
+                "Task": task.description,
+                "Frequency": task.frequency,
+                "Status": "✅ Done" if task.completed else "⬜ Pending",
+            }
+            for task in tasks
+        ])
         st.caption(scheduler.progress_summary())
     else:
-        st.info("No tasks scheduled yet. Add some tasks above.")
+        st.info("No tasks match the current filter.")
+
+    # Mark a task done — triggers auto-recurrence for daily/weekly tasks.
+    pending = scheduler.filter_tasks(completed=False)
+    if pending:
+        labels = [f"{t.time} — {t.description}" for t in pending]
+        choice = st.selectbox("Mark a task done", labels)
+        if st.button("Mark done"):
+            task = pending[labels.index(choice)]
+            follow_up = scheduler.mark_complete(task)
+            st.success(f"Completed '{task.description}'.")
+            if follow_up is not None:
+                st.info(
+                    f"Next {task.frequency} occurrence scheduled for "
+                    f"{follow_up.scheduled_date}."
+                )
+            st.rerun()

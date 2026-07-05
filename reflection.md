@@ -37,8 +37,9 @@
 **b. Tradeoffs**
 
 - Describe one tradeoff your scheduler makes.
+    My schedular detect_conflicts() flags a conflict only when two tasks share the exact same (date, time) slot. 
 - Why is that tradeoff reasonable for this scenario?
-
+     A pet owner has a handful of daily tasks (feed, walk, meds), not hundreds of tightly-packed appointments. With so few tasks, the odds that two near-adjacent tasks genuinely collide are low and even if they do, the owner can eyeball the sorted table and shuffle things themselves. 
 ---
 
 ## 3. AI Collaboration
@@ -46,12 +47,16 @@
 **a. How you used AI**
 
 - How did you use AI tools during this project (for example: design brainstorming, debugging, refactoring)?
+    I used AI to implement the instructions according to the project phases.
 - What kinds of prompts or questions were most helpful?
+   The most helpful prompts were the UI and Backend Integration prompts.
 
 **b. Judgment and verification**
 
 - Describe one moment where you did not accept an AI suggestion as-is.
+    When I added recurrence, the first version of the Task class stored the date in a field literally named date but date was also the name I'd imported from Python's datetime module. My editor's linter immediately flagged it and I realized the field name was shadowing the type. Even though the code happened to still run, I rejected that version and renamed the field to scheduled_date, which is both unambiguous and more descriptive.
 - How did you evaluate or verify what the AI suggested?
+    I wrote a 12-test pytest suite covering the specific behaviors and edge cases. For the UI, I launched Streamlit headless and checked it returned HTTP 200 with no errors before trusting it. 
 
 ---
 
@@ -60,12 +65,16 @@
 **a. What you tested**
 
 - What behaviors did you test?
+    I tested sorting, filtering, recurrence, and conflict detection.
 - Why were these tests important?
+    These tests were importent because they are the actual logic a pet owner relies on. Because if they broke the daily plan would be wrong or misleading. 
 
 **b. Confidence**
 
 - How confident are you that your scheduler works correctly?
+    I am firmly convince that my schedular works correctly because I tested with different commands and got 12 successful passed results.
 - What edge cases would you test next if you had more time?
+    I would test invalid time input like 9:00 or 25:00.
 
 ---
 
@@ -74,11 +83,14 @@
 **a. What went well**
 
 - What part of this project are you most satisfied with?
+    I'm most satisfied with how the recurrence and conflict-detection features came together cleanly on top of the original class design without needing to rewrite it
 
 **b. What you would improve**
 
 - If you had another iteration, what would you improve or redesign?
+    I'd replace the string-based time with a real datetime/time type and add a duration field. 
 
 **c. Key takeaway**
 
 - What is one important thing you learned about designing systems or working with AI on this project?
+    The biggest thing I learned is that AI suggestions are a starting point, not an answer
